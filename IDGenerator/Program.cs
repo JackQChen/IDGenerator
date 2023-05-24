@@ -28,6 +28,7 @@ namespace IDGenerator
                  .ConfigureServices((hostContext, services) =>
                  {
                      //Inject options
+                     services.Configure<APIOptions>(hostContext.Configuration.GetSection("APIOptions"));
                      services.Configure<AppOptions>(hostContext.Configuration.GetSection("AppOptions"));
 
                      //Inject Services

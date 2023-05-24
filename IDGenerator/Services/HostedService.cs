@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -10,8 +11,7 @@ using Microsoft.Extensions.Options;
 
 namespace IDGenerator.Services
 {
-
-    class HostedService : IHostedService
+    public class HostedService : IHostedService
     {
         private readonly IOptions<AppOptions> _options;
         private readonly ILogger<HostedService> _logger;
@@ -55,13 +55,15 @@ namespace IDGenerator.Services
                     {
                         dicResult.Add(item, await _apiService.Invoke(item));
                         Interlocked.Increment(ref _processedCount);
+                        //Update progress
+                        Console.SetCursorPosition(0, 0);
+                        Console.WriteLine((_processedCount * 100 / _totalCount) + "%    ");
                     }
                     return dicResult;
                 }, param, TaskCreationOptions.LongRunning).Unwrap();
             }
             Task.WaitAll(taskList);
-            var resultList = taskList.SelectMany(s => s.Result);
-            var availableList = resultList.Where(p => p.Value).Select(s => s.Key).ToList();
+            var availableList = taskList.SelectMany(s => s.Result).Where(p => p.Value).Select(s => s.Key).ToList();
             stopwatch.Stop();
             _logger.LogInformation($"Task completed, Total Count:{_totalCount}, ProcessedCount Count:{_processedCount}, Error Count:{_errorCount}");
             stopwatch.Stop();
